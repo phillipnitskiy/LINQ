@@ -60,7 +60,7 @@ namespace SampleQueries
 		//	}
 		//}
 
-        [Category("")]
+        [Category("Task")]
         [Title("Task 1")]
         [Description("Список всех клиентов, чей суммарный оборот (сумма всех заказов) превосходит некоторую величину X.")]
         public void Linq_Task_1()
@@ -84,7 +84,7 @@ namespace SampleQueries
             }
         }
 
-        [Category("")]
+        [Category("Task")]
         [Title("Task 2")]
         [Description("Для каждого клиента составьте список поставщиков, находящихся в той же стране и том же городе.")]
         public void Linq_Task_2()
@@ -107,7 +107,7 @@ namespace SampleQueries
             ObjectDumper.Write("");
             ObjectDumper.Write("");
 
-            var castomersGroup =
+            var castomersGroupBy =
                 dataSource.Customers
                 .GroupJoin(dataSource.Suppliers,
                             c => new { c.Country, c.City },
@@ -118,9 +118,89 @@ namespace SampleQueries
                                 Suppliers = ss.Select(s => s.SupplierName)
                             });
 
-            foreach (var customer in castomersGroup)
+            foreach (var customer in castomersGroupBy)
             {
                 ObjectDumper.Write($"{customer.CustomerID} {string.Join(", ", customer.Suppliers)}");
+            }
+        }
+
+        [Category("Task")]
+        [Title("Task 3")]
+        [Description("Найдите всех клиентов, у которых были заказы, превосходящие по сумме величину X")]
+        public void Linq_Task_3()
+        {
+            var X = 1000;
+            var customers =
+                dataSource.Customers
+                .Where(c => c.Orders.Any(o => o.Total > X));
+
+            foreach (var c in customers)
+            {
+                ObjectDumper.Write(c);
+            }
+        }
+
+        [Category("Task")]
+        [Title("Task 4")]
+        [Description("Выдайте список клиентов с указанием, начиная с какого месяца какого года" +
+                     "они стали клиентами (принять за таковые месяц и год самого первого заказа)")]
+        public void Linq_Task_4()
+        {
+            var customers =
+                dataSource.Customers
+                .Select(c => new
+                {
+                    c.CustomerID,
+                    StartDate = c.Orders.Length != 0? c.Orders.Min(o => o.OrderDate) : DateTime.MinValue
+                });
+
+            foreach (var c in customers)
+            {
+                ObjectDumper.Write(c);
+            }
+        }
+
+        [Category("Task")]
+        [Title("Task 5")]
+        [Description("Сделайте предыдущее задание, но выдайте список отсортированным по году, месяцу," +
+                     "оборотам клиента (от максимального к минимальному) и имени клиента")]
+        public void Linq_Task_5()
+        {
+            var customers =
+                dataSource.Customers
+                .Select(c => new
+                {
+                    Name = c.CompanyName,
+                    Turnover = c.Orders.Sum(o => o.Total),
+                    StartDate = c.Orders.Length != 0 ? c.Orders.Min(o => o.OrderDate) : DateTime.MinValue
+                })
+                .OrderBy(c => c.StartDate.Year)
+                .ThenBy(c => c.StartDate.Month)
+                .ThenByDescending(c => c.Turnover)
+                .ThenBy(c => c.Name);
+
+            foreach (var c in customers)
+            {
+                ObjectDumper.Write(c);
+            }
+        }
+
+        [Category("Task")]
+        [Title("Task 6")]
+        [Description("Укажите всех клиентов, у которых указан нецифровой почтовый код или не заполнен" +
+                     " регион или в телефоне не указан код оператора (для простоты считаем, что это" +
+                     " равнозначно «нет круглых скобочек в начале»).")]
+        public void Linq_Task_6()
+        {
+            var customers =
+                dataSource.Customers
+                .Where(c => c.PostalCode != null && c.PostalCode.All(char.IsDigit) &&
+                            c.Region != null &&
+                            c.Phone.StartsWith("("));
+
+            foreach (var c in customers)
+            {
+                ObjectDumper.Write(c);
             }
         }
     }
