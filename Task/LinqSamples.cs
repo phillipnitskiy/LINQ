@@ -4,21 +4,17 @@
 //
 //Copyright (C) Microsoft Corporation.  All rights reserved.
 
+using SampleSupport;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Windows.Forms;
-using System.Xml.Linq;
-using SampleSupport;
 using Task.Data;
 
 // Version Mad01
 
 namespace SampleQueries
 {
-	[Title("LINQ Module")]
+    [Title("LINQ Module")]
 	[Prefix("Linq")]
 	public class LinqSamples : SampleHarness
 	{
@@ -201,6 +197,63 @@ namespace SampleQueries
             foreach (var c in customers)
             {
                 ObjectDumper.Write(c);
+            }
+        }
+
+        [Category("Task")]
+        [Title("Task 7")]
+        [Description("Сгруппируйте все продукты по категориям, внутри – по наличию на складе, внутри последней группы отсортируйте по стоимости")]
+        public void Linq_Task_7()
+        {
+            var categories = dataSource.Products
+                .GroupBy(p => p.Category, (category, products) => new
+                {
+                    Category = category,
+                    Products = products.GroupBy(item => item.UnitsInStock, (count, pr) => new
+                    {
+                        Count = count,
+                        Products = pr.OrderByDescending(p => p.UnitPrice)
+                    })
+                });
+
+            foreach (var category in categories)
+            {
+                ObjectDumper.Write($"    Category: {category.Category}");
+
+                foreach (var units in category.Products)
+                {
+                    ObjectDumper.Write($"  Units count: {units.Count}");
+
+                    foreach (var product in units.Products)
+                    {
+                        ObjectDumper.Write(product);
+                    }
+                }
+
+                ObjectDumper.Write("");
+            }
+        }
+
+        [Category("Task")]
+        [Title("Task 8")]
+        [Description("Сгруппируйте товары по группам «дешевые», «средняя цена», «дорогие». Границы каждой группы задайте сами")]
+        public void Linq_Task_8()
+        {
+            var low = 10;
+            var mid = 100;
+
+            var groups = dataSource.Products
+                .GroupBy(p => p.UnitPrice <= low ? "low" 
+                            : p.UnitPrice <= mid ? "mid" 
+                            : "high");
+
+            foreach (var group in groups)
+            {
+                ObjectDumper.Write($"  {group.Key}");
+                foreach (var product in group)
+                {
+                    ObjectDumper.Write(product);
+                }
             }
         }
     }
