@@ -256,5 +256,25 @@ namespace SampleQueries
                 }
             }
         }
+
+        [Category("Task")]
+        [Title("Task 9")]
+        [Description("Рассчитайте среднюю прибыльность каждого города (среднюю сумму заказа по всем клиентам из данного города)" +
+                     " и среднюю интенсивность (среднее количество заказов, приходящееся на клиента из каждого города)")]
+        public void Linq_Task_9()
+        {
+            var cities = dataSource.Customers
+                .GroupBy(c => c.City, (city, customers) => new
+                {
+                    Name = city,
+                    AverageIncome = customers.Average(c => c.Orders.Sum(o => o.Total)),
+                    AverageOrderCount = customers.Average(c => c.Orders.Length)
+                });
+
+            foreach (var city in cities)
+            {
+                ObjectDumper.Write(city);
+            }
+        }
     }
 }
