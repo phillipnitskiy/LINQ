@@ -276,5 +276,35 @@ namespace SampleQueries
                 ObjectDumper.Write(city);
             }
         }
+
+        [Category("Task")]
+        [Title("Task 10")]
+        [Description("Среднегодовая статистика активности клиентов по месяцам (без учета года), статистику" +
+                     "по годам, по годам и месяцам (т.е. когда один месяц в разные годы имеет своё значение).")]
+        public void Linq_Task_10()
+        {
+            var orders = dataSource.Customers.SelectMany(n => n.Orders);
+
+            ObjectDumper.Write("     - by month");
+            var monthGroup = orders.GroupBy(n => n.OrderDate.Month);
+            foreach (var group in monthGroup.OrderBy(n => n.Key))
+            {
+                ObjectDumper.Write($"{group.Key} : {group.Count()}");
+            }
+
+            ObjectDumper.Write("     - by year");
+            var yearGroup = orders.GroupBy(n => n.OrderDate.Year);
+            foreach (var group in yearGroup.OrderBy(n => n.Key))
+            {
+                ObjectDumper.Write($"{group.Key} : {group.Count()}");
+            }
+
+            ObjectDumper.Write("     - by month and year");
+            var monthYearGroup = orders.GroupBy(n => new { n.OrderDate.Year, n.OrderDate.Month });
+            foreach (var group in monthYearGroup.OrderBy(n => n.Key.Year).ThenBy(n => n.Key.Month))
+            {
+                ObjectDumper.Write($"{group.Key.Year}/{group.Key.Month} : {group.Count()}");
+            }
+        }
     }
 }
